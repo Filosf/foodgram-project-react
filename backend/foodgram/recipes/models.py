@@ -182,27 +182,31 @@ class RecipeIngredients(models.Model):
 
 class Subscription(models.Model):
     """Модель подписки."""
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='following',
+        verbose_name='Автор'
+    )
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name="user",
-        verbose_name="Имя подписчика")
-    subscribing = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="subscribing",
-        verbose_name="Имя автора")
+        related_name='follower',
+        verbose_name='Подписчик'
+    )
 
     class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
         constraints = [
-            models.UniqueConstraint(fields=("user", "subscribing"),
-                                    name="unique_subscription")
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique_follow'
+            )
         ]
-        verbose_name = "Подписка"
-        verbose_name_plural = "Подписки"
 
     def __str__(self):
-        return f"Подписка {self.user} на {self.subscribing}"
+        return f'{self.user} подписан на {self.author}'
 
 
 class Favorite(models.Model):
