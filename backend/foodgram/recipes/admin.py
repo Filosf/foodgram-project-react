@@ -29,31 +29,10 @@ class RecipeAdmin(admin.ModelAdmin):
     count_favorites.short_description = 'Количество избранных'
 
 
-class RecipeIngredientAdmin(admin.ModelAdmin):
-    list_display = ('id', 'recipe', 'ingredient', 'amount',)
-    search_fields = ('recipe', 'ingredient',)
-    list_filter = ('recipe', 'ingredient',)
-    empty_value_display = '-пусто-'
-
-
-class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'recipe',)
-    search_fields = ('user', 'recipe',)
-    list_filter = ('user', 'recipe',)
-    empty_value_display = '-пусто-'
-
-
-class ShoppingAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'recipe',)
-    search_fields = ('user', 'recipe',)
-    list_filter = ('user', 'recipe',)
-    empty_value_display = '-пусто-'
-
-
 admin.site.register(Tag)
 admin.site.register(Ingredient)
-admin.site.register(RecipeIngredients, RecipeIngredientAdmin)
-admin.site.register(Favorite, FavoriteAdmin)
-admin.site.register(ShoppingList, ShoppingAdmin)
+admin.site.register(RecipeIngredients)
+admin.site.register(Favorite)
+admin.site.register(ShoppingList)
 admin.site.register(User)
 admin.site.register(Subscription)

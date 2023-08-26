@@ -16,9 +16,8 @@ from recipes.models import Recipe, RecipeIngredients
 
 class ShoppingListDownloadView(APIView):
     def get(self, request):
-        user = request.user
         shopping_list = RecipeIngredients.objects.filter(
-            recipe__shopping_list__user=user).values(
+            recipe__shopping_list__user=request.user).values(
             "ingredient__name",
             "ingredient__measurement_unit"
         ).annotate(
@@ -32,27 +31,27 @@ class ShoppingListDownloadView(APIView):
         )
         buffer = io.BytesIO()
         pdf_file = canvas.Canvas(buffer)
-        pdf_file.setFont(font, settings.SHOPPING_LIST_SETFONTS)
+        pdf_file.setFont(font, settings.ETFONTS)
         pdf_file.drawString(
-            settings.SHOPPING_LIST_TITLE_X,
-            settings.SHOPPING_LIST_TITLE_Y,
+            settings.TITLE_X,
+            settings.TITLE_Y,
             "Список покупок:"
         )
-        pdf_file.setFont(font, settings.SHOPPING_LIST_SETFONT)
-        from_bottom = settings.SHOPPING_LIST_BOTTOM_Y
+        pdf_file.setFont(font, settings.SETFONT)
+        from_bottom = settings.BOTTOM_Y
         for number, ingredient in enumerate(shopping_list, start=1):
             pdf_file.drawString(
-                settings.SHOPPING_LIST_ITEM_X,
+                settings.ITEM_X,
                 from_bottom,
                 (f'{number}.  {ingredient["ingredient__name"]} - '
                  f'{ingredient["amount"]} '
                  f'{ingredient["ingredient__measurement_unit"]}')
             )
-            from_bottom -= settings.SHOPPING_LIST_ITEM_HEIGHT
-            if from_bottom <= settings.SHOPPING_LIST_MAX_Y:
-                from_bottom = settings.SHOPPING_LIST_TITLE_Y
+            from_bottom -= settings.ITEM_HEIGHT
+            if from_bottom <= settings.MAX_Y:
+                from_bottom = settings.TITLE_Y
                 pdf_file.showPage()
-                pdf_file.setFont(font, settings.SHOPPING_LIST_SETFONT)
+                pdf_file.setFont(font, settings.SETFONT)
         pdf_file.showPage()
         pdf_file.save()
         buffer.seek(0)
