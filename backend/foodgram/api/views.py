@@ -96,9 +96,7 @@ class CustomUserViewSet(UserViewSet):
             return Response(author.id, status=status.HTTP_201_CREATED)
 
         if request.method == "DELETE":
-            subscription = get_object_or_404(Subscription, user=user,
-                                             author=author)
-            subscription.delete()
+            get_object_or_404(Subscription, user=user, author=author).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, permission_classes=[IsAuthenticated],

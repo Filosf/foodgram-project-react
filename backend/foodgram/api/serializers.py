@@ -170,7 +170,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         ingredients_list = [ingredient['id'] for ingredient in ingredients]
         if len(ingredients_list) != len(set(ingredients_list)):
             raise serializers.ValidationError(
-                "Нельзя выбрать Ингредиент более одного раза"
+                "Нельзя выбрать нгредиент более одного раза"
             )
         return data
 

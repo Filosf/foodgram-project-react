@@ -84,7 +84,7 @@ def remove_favorite_shoppinglist(request, pk, model):
             status=status.HTTP_204_NO_CONTENT
         )
     return Response(
-        {"errors": 'Рецепта несуществует"'},
+        {"errors": "Рецепта несуществует"},
         status=status.HTTP_400_BAD_REQUEST
     )
 
