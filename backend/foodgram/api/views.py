@@ -21,13 +21,10 @@ from api.serializers import (TagSerializer, UserSerializer, RecipeSerializer,
                              RecipeGetSerializer, RecipeFollowSerializer,)
 from api.permissions import IsAuthorOrReadOnly
 from recipes.models import (Tag, User, Recipe, Ingredient, Favorite,
-                            ShoppingList, Subscription)
+                            ShoppingList, Subscription, RecipeIngredients)
 from api.utils import (add_favorite_shoppinglist, remove_favorite_shoppinglist)
 from api.filters import RecipeFilter
 from api.paginations import CastomPagination
-
-
-from recipes.models import Recipe, RecipeIngredients
 
 
 class ShoppingListDownloadView(APIView):
