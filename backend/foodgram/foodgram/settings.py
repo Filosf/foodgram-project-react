@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'djoser',
     'api',
     'recipes',
+    'colorfield',
 ]
 
 MIDDLEWARE = [
@@ -105,7 +106,15 @@ REST_FRAMEWORK = {
 }
 
 DJOSER = {
-    'LOGIN_FIELD': 'email'
+    'HIDE_USERS': False,
+    'LOGIN_FIELD': 'email',
+    'SERIALIZERS': {
+        'user': 'api.serializers.UserSerializer'
+    },
+    'PERMISSIONS': {
+        'user_list': ['rest_framework.permissions.AllowAny'],
+        'user': ['rest_framework.permissions.IsAuthenticated']
+    }
 }
 
 AUTH_USER_MODEL = 'recipes.User'

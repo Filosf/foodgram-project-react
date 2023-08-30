@@ -1,6 +1,15 @@
+import io
+
+from django.db.models import Sum
+from django.conf import settings
+from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import get_object_or_404
@@ -8,14 +17,63 @@ from rest_framework import status
 from rest_framework.decorators import action
 
 from api.serializers import (TagSerializer, UserSerializer, RecipeSerializer,
-                             SubscriptionSerializer, IngredientSerializer,
-                             RecipeGetSerializer, RecipeFollowSerializer)
+                             IngredientSerializer, FollowSerializer,
+                             RecipeGetSerializer, RecipeFollowSerializer,)
 from api.permissions import IsAuthorOrReadOnly
 from recipes.models import (Tag, User, Recipe, Ingredient, Favorite,
                             ShoppingList, Subscription)
 from api.utils import (add_favorite_shoppinglist, remove_favorite_shoppinglist)
 from api.filters import RecipeFilter
 from api.paginations import CastomPagination
+
+
+from recipes.models import Recipe, RecipeIngredients
+
+
+class ShoppingListDownloadView(APIView):
+    def get(self, request):
+        shopping_list = RecipeIngredients.objects.filter(
+            recipe__shopping_list__user=request.user).values(
+            "ingredient__name",
+            "ingredient__measurement_unit"
+        ).annotate(
+            amount=Sum("amount")
+        ).order_by()
+        font = "Tantular"
+        pdfmetrics.registerFont(
+            TTFont("Tantular",
+                   "./data/Tantular.ttf",
+                   "UTF-8")
+        )
+        buffer = io.BytesIO()
+        pdf_file = canvas.Canvas(buffer)
+        pdf_file.setFont(font, settings.ETFONTS)
+        pdf_file.drawString(
+            settings.TITLE_X,
+            settings.TITLE_Y,
+            "Список покупок:"
+        )
+        pdf_file.setFont(font, settings.SETFONT)
+        from_bottom = settings.BOTTOM_Y
+        for number, ingredient in enumerate(shopping_list, start=1):
+            pdf_file.drawString(
+                settings.ITEM_X,
+                from_bottom,
+                (f'{number}.  {ingredient["ingredient__name"]} - '
+                 f'{ingredient["amount"]} '
+                 f'{ingredient["ingredient__measurement_unit"]}')
+            )
+            from_bottom -= settings.ITEM_HEIGHT
+            if from_bottom <= settings.MAX_Y:
+                from_bottom = settings.TITLE_Y
+                pdf_file.showPage()
+                pdf_file.setFont(font, settings.SETFONT)
+        pdf_file.showPage()
+        pdf_file.save()
+        buffer.seek(0)
+        return FileResponse(
+            buffer, as_attachment=True, filename="shopping_list.pdf"
+        )
 
 
 class TagViewSet(ModelViewSet):
@@ -34,17 +92,6 @@ class RecipeViewSet(ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     pagination_class = CastomPagination
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        is_favorited = self.request.query_params.get("is_favorited")
-        is_in_shopping_cart = self.request.query_params.get(
-            "is_in_shopping_cart")
-        if is_favorited is not None and int(is_favorited) == 1:
-            queryset = queryset.filter(favorite_recipe__user=self.request.user)
-        elif is_in_shopping_cart is not None and int(is_in_shopping_cart) == 1:
-            queryset = queryset.filter(shopping_list__user=self.request.user)
-        return queryset
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -88,12 +135,11 @@ class CustomUserViewSet(UserViewSet):
         author = get_object_or_404(User, id=self.kwargs.get("id"))
 
         if request.method == "POST":
-            serializer = SubscriptionSerializer(
-                author, data=request.data, context={"request": request}
+            serializer = FollowSerializer(
+                author, context={'request': request}
             )
-            serializer.is_valid(raise_exception=True)
             Subscription.objects.create(user=user, author=author)
-            return Response(author.id, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == "DELETE":
             get_object_or_404(Subscription, user=user, author=author).delete()
@@ -102,10 +148,10 @@ class CustomUserViewSet(UserViewSet):
     @action(detail=False, permission_classes=[IsAuthenticated],
             methods=["GET"])
     def subscriptions(self, request):
-        queryset = User.objects.filter(follower__user=request.user)
-        serializer = SubscriptionSerializer(
-            self.paginate_queryset(queryset),
-            many=True,
-            context={"request": request}
-        )
+        user = request.user
+        queryset = User.objects.filter(following__user=user)
+        pages = self.paginate_queryset(queryset)
+        serializer = FollowSerializer(
+            pages, many=True,
+            context={"request": request})
         return self.get_paginated_response(serializer.data)

@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
+from colorfield.fields import ColorField
 
-from recipes.validators import validate_username, hex_color_validator
+from recipes.validators import validate_username
 
 
 class User(AbstractUser):
@@ -70,11 +71,7 @@ class Tag(models.Model):
         max_length=200,
         unique=True,
         verbose_name="Название тега")
-    color = models.CharField(
-        max_length=7,
-        unique=True,
-        validators=[hex_color_validator],
-        verbose_name="Цветовой HEX-код")
+    color = ColorField(default='#FF0000')
     slug = models.SlugField(
         max_length=200,
         unique=True,
@@ -102,6 +99,10 @@ class Ingredient(models.Model):
         ordering = ("name",)
         verbose_name = "Ингредиент"
         verbose_name_plural = "Ингредиенты"
+        models.UniqueConstraint(
+            fields=["name", "measurement_unit"],
+            name="unique_measurement_unit_for_name"
+        )
 
     def __str__(self):
         return f"{self.name}, {self.measurement_unit}"
@@ -137,7 +138,10 @@ class Recipe(models.Model):
         related_name="tags",
         verbose_name="Тег к рецепту")
     cooking_time = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1, "Минимум")],
+        validators=[
+            MinValueValidator(1, "Минимум"),
+            MaxValueValidator(600, "Максимум")
+        ],
         blank=True,
         null=True,
         verbose_name="Время приготовления (в минутах)")
@@ -199,6 +203,8 @@ class Subscription(models.Model):
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
         constraints = [
+            models.CheckConstraint(check=~models.Q(author=models.F('user')),
+                                   name='author_not_user'),
             models.UniqueConstraint(
                 fields=['user', 'author'],
                 name='unique_follow'

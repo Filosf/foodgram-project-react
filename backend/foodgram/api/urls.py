@@ -2,8 +2,7 @@ from django.urls import include, path
 from rest_framework import routers
 
 from api.views import (TagViewSet, CustomUserViewSet, RecipeViewSet,
-                       IngredientViwsSet)
-from api.utils import ShoppingListDownloadView
+                       IngredientViwsSet, ShoppingListDownloadView)
 
 
 app_name = 'api'
@@ -15,8 +14,8 @@ router.register("recipes", RecipeViewSet, basename="recipes")
 router.register("ingredients", IngredientViwsSet, basename="ingredients")
 
 urlpatterns = [
-    path("recipes/download_shopping_card/", ShoppingListDownloadView.as_view(),
-         name="download_shopping_card"),
+    path("recipes/download_shopping_cart/", ShoppingListDownloadView.as_view(),
+         name="download_shopping_cart"),
     path("auth/", include("djoser.urls.authtoken")),
     path("", include(router.urls)),
 ]

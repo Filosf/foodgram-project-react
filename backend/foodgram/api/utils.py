@@ -1,63 +1,8 @@
-import io
-
-from django.db.models import Sum
-from django.conf import settings
-from django.http import FileResponse
 from django.shortcuts import get_object_or_404
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen import canvas
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
-from recipes.models import Recipe, RecipeIngredients
-
-
-class ShoppingListDownloadView(APIView):
-    def get(self, request):
-        shopping_list = RecipeIngredients.objects.filter(
-            recipe__shopping_list__user=request.user).values(
-            "ingredient__name",
-            "ingredient__measurement_unit"
-        ).annotate(
-            amount=Sum("amount")
-        ).order_by()
-        font = "Tantular"
-        pdfmetrics.registerFont(
-            TTFont("Tantular",
-                   "./Tantular.ttf",
-                   "UTF-8")
-        )
-        buffer = io.BytesIO()
-        pdf_file = canvas.Canvas(buffer)
-        pdf_file.setFont(font, settings.ETFONTS)
-        pdf_file.drawString(
-            settings.TITLE_X,
-            settings.TITLE_Y,
-            "Список покупок:"
-        )
-        pdf_file.setFont(font, settings.SETFONT)
-        from_bottom = settings.BOTTOM_Y
-        for number, ingredient in enumerate(shopping_list, start=1):
-            pdf_file.drawString(
-                settings.ITEM_X,
-                from_bottom,
-                (f'{number}.  {ingredient["ingredient__name"]} - '
-                 f'{ingredient["amount"]} '
-                 f'{ingredient["ingredient__measurement_unit"]}')
-            )
-            from_bottom -= settings.ITEM_HEIGHT
-            if from_bottom <= settings.MAX_Y:
-                from_bottom = settings.TITLE_Y
-                pdf_file.showPage()
-                pdf_file.setFont(font, settings.SETFONT)
-        pdf_file.showPage()
-        pdf_file.save()
-        buffer.seek(0)
-        return FileResponse(
-            buffer, as_attachment=True, filename="shopping_list.pdf"
-        )
+from recipes.models import Recipe
 
 
 def add_favorite_shoppinglist(request, pk, model, serializer):
@@ -79,11 +24,10 @@ def remove_favorite_shoppinglist(request, pk, model):
                                    recipe=recipe)
         follow.delete()
         return Response(
-            "Рецепт удален",
             status=status.HTTP_204_NO_CONTENT
         )
     return Response(
-        {"errors": "Рецепта несуществует"},
+        {"errors": "Рецепта нет в избраном"},
         status=status.HTTP_400_BAD_REQUEST
     )
 
