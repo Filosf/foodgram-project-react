@@ -3,6 +3,7 @@ import io
 from django.db.models import Sum
 from django.conf import settings
 from django.http import FileResponse
+from django.core import exceptions
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from reportlab.pdfbase import pdfmetrics
@@ -44,7 +45,7 @@ class ShoppingListDownloadView(APIView):
         )
         buffer = io.BytesIO()
         pdf_file = canvas.Canvas(buffer)
-        pdf_file.setFont(font, settings.ETFONTS)
+        pdf_file.setFont(font, settings.SETFONTS)
         pdf_file.drawString(
             settings.TITLE_X,
             settings.TITLE_Y,
@@ -132,15 +133,24 @@ class CustomUserViewSet(UserViewSet):
         author = get_object_or_404(User, id=self.kwargs.get("id"))
 
         if request.method == "POST":
+            if author == user:
+                raise exceptions.ValidationError(
+                    "Нельзя подписаться на самого себя.")
+            if Subscription.objects.filter(user=user, author=author).exists():
+                raise exceptions.ValidationError("Вы уже подписаны.")
             serializer = FollowSerializer(
                 author, context={'request': request}
             )
             Subscription.objects.create(user=user, author=author)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
 
-        if request.method == "DELETE":
-            get_object_or_404(Subscription, user=user, author=author).delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        if not Subscription.objects.filter(user=user, author=author).exists():
+            raise exceptions.ValidationError("Подписки не существует.")
+        Subscription.objects.filter(user=user, author=author).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, permission_classes=[IsAuthenticated],
             methods=["GET"])
