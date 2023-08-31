@@ -113,7 +113,7 @@ DJOSER = {
     },
     'PERMISSIONS': {
         'user_list': ['rest_framework.permissions.AllowAny'],
-        'user': ['rest_framework.permissions.AllowAny'], # 'IsAuthenticated']
+        'user': ['rest_framework.permissions.AllowAny'],
     }
 }
 
