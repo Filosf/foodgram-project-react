@@ -11,7 +11,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'default')
 
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split()
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split()
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -130,7 +130,7 @@ DJOSER = {
 
 AUTH_USER_MODEL = 'recipes.User'
 
-TITLE_X = 150
+TITLE_X = 220
 TITLE_Y = 800
 ITEM_X = 50
 BOTTOM_Y = 750
