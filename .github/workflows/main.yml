@@ -55,9 +55,9 @@ jobs:
       - name: Push to DockerHub
         uses: docker/build-push-action@v4
         with:
-          context: ./backend/
+          context: ./backend/foodgram/
           push: true
-          tags: filosf/kittygram_backend:latest
+          tags: filosf/foodgram_backend:latest
 
   frontend_tests:
     runs-on: ubuntu-latest
@@ -72,7 +72,7 @@ jobs:
     - name: Install dependencies
       run: |
         cd frontend/
-        npm ci
+        npm install
 
     - name: Test frontend
       run: |
@@ -97,7 +97,7 @@ jobs:
         with:
           context: ./frontend/
           push: true
-          tags: filosf/kittygram_frontend:latest
+          tags: filosf/foodgram_frontend:latest
 
   build_gateway_and_push_to_docker_hub:
     name: Push gateway Docker image to DockerHub
@@ -117,7 +117,7 @@ jobs:
         with:
           context: ./infra/
           push: true
-          tags: filosf/kittygram_gateway:latest
+          tags: filosf/foodgram_gateway:latest
 
   deploy:
     runs-on: ubuntu-latest
