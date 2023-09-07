@@ -9,9 +9,9 @@ jobs:
       postgres:
         image: postgres:13.10
         env:
-          POSTGRES_USER: django_user
-          POSTGRES_PASSWORD: mysecretpassword
-          POSTGRES_DB: django
+          POSTGRES_USER: foodgram_user
+          POSTGRES_PASSWORD: foodgram_password
+          POSTGRES_DB: foodgram
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
@@ -97,7 +97,7 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
-        source: "docker-compose.production.yml"
+        source: "infra/docker-compose.production.yml"
         target: "foodgram"
     - name: Executing remote ssh commands to deploy
       uses: appleboy/ssh-action@master
