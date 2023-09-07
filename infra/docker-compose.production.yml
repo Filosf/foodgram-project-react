@@ -16,7 +16,7 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
   backend:
-    image: filosf/foodgram_backend
+    image: filosf/infra_backend
     env_file: .env
     volumes:
       - static:/app/static/
@@ -26,15 +26,20 @@ services:
       - db
 
   frontend:
-    image: filosf/foodgram_frontend
+    image: filosf/infra_frontend
     volumes:
       - ../frontend/:/app/result_build/
 
-  gateway:
-    image: filosf/foodgram_gateway
-    env_file: .env
+  nginx:
+    image: nginx:1.19.3
     ports:
-      - 7000:80
+      - "7000:80"
     volumes:
-      - static:/static
-      - media:/app/media
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ../frontend/build:/usr/share/nginx/html/
+      - ../docs/:/usr/share/nginx/html/api/docs/
+      - static:/var/html/static/
+      - media:/var/html/media/
+    depends_on:
+      - backend
+      - frontend
