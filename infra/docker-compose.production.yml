@@ -34,7 +34,6 @@ services:
       - 7000:80
     volumes:
       - ../frontend/build:/usr/share/nginx/html/
-      - ../docs/:/usr/share/nginx/html/api/docs/
       - static_data:/var/html/static/
       - media_data:/var/html/media/
       - redoc:/usr/share/nginx/html/api/docs/
