@@ -29,7 +29,7 @@ services:
     volumes:
       - ../frontend/:/app/result_build/
 
-  gateway:
+  nginx:
     build: ./
     env_file: ../.env
     ports:
