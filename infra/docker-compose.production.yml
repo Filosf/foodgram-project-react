@@ -1,35 +1,46 @@
-version: '3'
+version: '3.3'
+
 
 volumes:
-  pg_data:
-  static:
-  media:
+  postgres_data:
+  static_data:
+  media_data:
   redoc:
-  
+
+
 services:
   db:
-    image: postgres:13
+    image: postgres:13.10
+    container_name: foodgram-db
     env_file: ../.env
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
 
   backend:
     image: filosf/foodgram_backend
+    container_name: foodgram-backend
     env_file: ../.env
-    volumes:
-      - static:/app/static/
-      - media:/app/media/
-      - redoc:/app/api/docs/
     depends_on:
       - db
+    volumes:
+      - static_data:/app/static
+      - media_data:/app/media
+      - redoc:/app/api/docs/
+    restart: always
+
 
   frontend:
     image: filosf/foodgram_frontend
+    container_name: foodgram-frontend
     volumes:
       - ../frontend/:/app/result_build/
 
+
   nginx:
     image: filosf/foodgram_nginx
+    container_name: foodgram-nginx
     ports:
       - 7000:80
     volumes:
@@ -39,3 +50,4 @@ services:
       - redoc:/usr/share/nginx/html/api/docs/
     depends_on:
       - backend
+    restart: always
