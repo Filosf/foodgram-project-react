@@ -95,8 +95,9 @@ class IngredientViwsSet(ModelViewSet):
 
         if ingredient_query:
             for i in range(1, len(ingredient_query) + 1):
-                subset_query = ingredient_query[:i]
-                queryset = queryset.filter(name__istartswith=subset_query)
+                queryset = queryset.filter(
+                    name__istartswith=ingredient_query[:i]
+                )
 
         queryset = queryset.annotate(lower_name=functions.Lower("name"))
         queryset = queryset.order_by("lower_name")
