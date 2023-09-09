@@ -85,7 +85,8 @@ class TagViewSet(ModelViewSet):
 class IngredientViwsSet(ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = (DjangoFilterBackend, SearchFilter, IngredientFilter)
+    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filterset_class = IngredientFilter
     ordering_fields = ("name",)
 
 
