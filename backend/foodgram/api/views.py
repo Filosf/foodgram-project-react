@@ -90,8 +90,9 @@ class IngredientViwsSet(ModelViewSet):
 
     def get_queryset(self):
         queryset = Ingredient.objects.all()
-        queryset = queryset.annotate(lower_name=functions.Lower("name"))
-        queryset = queryset.order_by("lower_name")
+        queryset.annotate(
+            lower_name=functions.Lower("name")
+        ).order_by("lower_name")
         return queryset
 
 
