@@ -1,7 +1,7 @@
 import django_filters
 from django.db.models.functions import Lower
 
-from recipes.models import User, Recipe, Tag
+from recipes.models import User, Recipe, Tag, Ingredient
 
 
 class RecipeFilter(django_filters.FilterSet):
@@ -32,6 +32,10 @@ class RecipeFilter(django_filters.FilterSet):
 
 class IngredientFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(method="sort_ingredients")
+
+    class Meta:
+        model = Ingredient
+        fields = ("name",)
 
     def sort_ingredients(self, queryset, name, value):
         ingredient_query = self.request.query_params.get("name")
