@@ -1,6 +1,7 @@
 import django_filters
+from django.db.models.functions import Lower
 
-from recipes.models import User, Recipe, Tag
+from recipes.models import User, Recipe, Tag, Ingredient
 
 
 class RecipeFilter(django_filters.FilterSet):
@@ -26,4 +27,24 @@ class RecipeFilter(django_filters.FilterSet):
     def is_in_shopping_cart_filter(self, queryset, name, value):
         if self.request.user.is_authenticated and value:
             return queryset.filter(shopping_list__user=self.request.user)
+        return queryset
+
+
+class IngredientFilter(django_filters.FilterSet):
+
+    class Meta:
+        model = Ingredient
+        fields = ("name", )
+
+    def sort_ingredients(self, queryset, name, value):
+        ingredient_query = self.request.query_params.get("name")
+
+        if ingredient_query:
+            for i, _ in enumerate(ingredient_query, start=1):
+                queryset = queryset.filter(
+                    name__istartswith=ingredient_query[:i]
+                )
+
+        queryset = queryset.annotate(lower_name=Lower("name"))
+        queryset = queryset.order_by("lower_name")
         return queryset

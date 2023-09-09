@@ -1,6 +1,6 @@
 import io
 
-from django.db.models import Sum, functions
+from django.db.models import Sum
 from django.conf import settings
 from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
@@ -25,7 +25,7 @@ from api.permissions import IsAuthorOrReadOnly
 from recipes.models import (Tag, User, Recipe, Ingredient, Favorite,
                             ShoppingList, Subscription, RecipeIngredients)
 from api.utils import (add_favorite_shoppinglist, remove_favorite_shoppinglist)
-from api.filters import RecipeFilter
+from api.filters import RecipeFilter, IngredientFilter
 from api.paginations import CastomPagination
 
 
@@ -83,23 +83,10 @@ class TagViewSet(ModelViewSet):
 
 
 class IngredientViwsSet(ModelViewSet):
+    queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filter_backends = (DjangoFilterBackend, SearchFilter, IngredientFilter)
     ordering_fields = ("name",)
-
-    def get_queryset(self):
-        queryset = Ingredient.objects.all()
-        ingredient_query = self.request.query_params.get("name")
-
-        if ingredient_query:
-            for i in enumerate(ingredient_query):
-                queryset = queryset.filter(
-                    name__istartswith=ingredient_query[:i]
-                )
-
-        queryset = queryset.annotate(lower_name=functions.Lower("name"))
-        queryset = queryset.order_by("lower_name")
-        return queryset
 
 
 class RecipeViewSet(ModelViewSet):
