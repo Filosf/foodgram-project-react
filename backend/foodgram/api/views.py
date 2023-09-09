@@ -1,6 +1,6 @@
 import io
 
-from django.db.models import Sum
+from django.db.models import Sum, functions
 from django.conf import settings
 from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import get_object_or_404
+from rest_framework.filters import SearchFilter
 from rest_framework import status
 from rest_framework.decorators import action
 
@@ -84,6 +85,22 @@ class TagViewSet(ModelViewSet):
 class IngredientViwsSet(ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    filter_backends = (DjangoFilterBackend, SearchFilter)
+    search_fields = ("name",)
+    ordering_fields = ("name",)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        ingredient_query = self.request.query_params.get("name")
+
+        if ingredient_query:
+            for i in range(1, len(ingredient_query) + 1):
+                subset_query = ingredient_query[:i]
+                queryset = queryset.filter(name__istartswith=subset_query)
+
+        queryset = queryset.annotate(lower_name=functions.Lower("name"))
+        queryset = queryset.order_by("lower_name")
+        return queryset
 
 
 class RecipeViewSet(ModelViewSet):
