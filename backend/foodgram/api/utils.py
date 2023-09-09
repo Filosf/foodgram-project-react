@@ -27,7 +27,7 @@ def remove_favorite_shoppinglist(request, pk, model):
             status=status.HTTP_204_NO_CONTENT
         )
     return Response(
-        {"errors": "Рецепта нет в избраном"},
+        {"errors": "Рецепта нет в избраном или в списке покупок"},
         status=status.HTTP_400_BAD_REQUEST
     )
 
