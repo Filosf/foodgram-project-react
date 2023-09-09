@@ -83,22 +83,13 @@ class TagViewSet(ModelViewSet):
 
 
 class IngredientViwsSet(ModelViewSet):
-    queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
     search_fields = ("name",)
     ordering_fields = ("name",)
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        ingredient_query = self.request.query_params.get("name")
-
-        if ingredient_query:
-            for i in range(1, len(ingredient_query) + 1):
-                queryset = queryset.filter(
-                    name__istartswith=ingredient_query[:i]
-                )
-
+        queryset = Ingredient.objects.all()
         queryset = queryset.annotate(lower_name=functions.Lower("name"))
         queryset = queryset.order_by("lower_name")
         return queryset
