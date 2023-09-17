@@ -62,8 +62,7 @@ class FollowSerializer(UserSerializer):
         return RecipeFollowSerializer(queryset, many=True).data
 
     def get_recipes_count(self, obj):
-        """Метод получения количества рецептов для подписки."""
-        return obj.author.recipe.count()
+        return obj.recipe.count()
 
 
 class IngredientRecipeGetSerializer(serializers.ModelSerializer):
