@@ -46,7 +46,7 @@ class RecipeFollowSerializer(serializers.ModelSerializer):
 
 class FollowSerializer(UserSerializer):
     recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.ReadOnlyField(source='author.recipes.count')
+    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -60,6 +60,10 @@ class FollowSerializer(UserSerializer):
         if limit:
             queryset = queryset[:int(limit)]
         return RecipeFollowSerializer(queryset, many=True).data
+
+    def get_recipes_count(self, obj):
+        """Метод получения количества рецептов для подписки."""
+        return obj.subscribing.recipe.count()
 
 
 class IngredientRecipeGetSerializer(serializers.ModelSerializer):
